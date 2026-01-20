@@ -26,7 +26,7 @@ void flashGreen() {
     }
     count++;
     for (int i=0; i<5; i++) {
-      if (turn==0) return;
+      if (turn==1) return;
       delay(200);
     }
   } 
