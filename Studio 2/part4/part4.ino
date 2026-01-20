@@ -13,9 +13,6 @@ void setup() {
   EIMSK |= 0b00000001;
   // Ensure that interrupts are turned on.
   sei();
-
-  // For Question 6,
-  //attachInterrupt(digitalPinToInterrupt(INT0), ISR, FALLING);
 }
 
 /* Here we declare the Interrupt Service Routine (ISR) for INT0_vect */
