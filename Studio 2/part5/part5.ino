@@ -6,34 +6,25 @@
  */ 
 
 #include <avr/io.h>
-
-// Remember to #include <avr/interrupt.h>
-
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #define LED_DELAY  100
 
 static volatile int turn=0;
 
-void flashGreen()
-{
+void flashGreen() {
   int count=1;
   int i;
 
-  while(turn==0)
-  {
+  while(turn==0) {
     for(i=0; i<count && turn==0; i++)
     {
-      // Switch green LED at pin 12 on. Pin 12 is PB4
-      PORTB |= 0b00010000;
-    
-      // Delay 250ms
-      _delay_ms(LED_DELAY);
-    
-      PORTB &= 0b11101111;
+      PORTB |= 0b00010000; // Switch green LED at pin 12 on. Pin 12 is PB4
+      _delay_ms(LED_DELAY); // Delay 250ms
+      PORTB &= 0b11101111; //switch off
       _delay_ms(LED_DELAY);
     }
-    
     _delay_ms(1000);
     count++;
   } 
@@ -44,20 +35,13 @@ void flashRed()
   int count=1;
   int i;
 
-  while(turn==1)
-  {
-    for(i=0; i<count && turn==1; i++)
-    {
-      // Switch green LED at pin 12 on. Pin 12 is PB4
-      PORTB |= 0b00001000;
-      
-      // Delay 250ms
-      _delay_ms(LED_DELAY);
-      
+  while(turn==1) {
+    for(i=0; i<count && turn==1; i++) {
+      PORTB |= 0b00001000; // Switch red LED at pin 11 on
+      _delay_ms(LED_DELAY); // Delay 250ms
       PORTB &= 0b11110111;
       _delay_ms(LED_DELAY);
     }
-    
     _delay_ms(1000);
     count++;
   }
