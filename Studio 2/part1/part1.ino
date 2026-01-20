@@ -32,9 +32,10 @@ void flashGreen() {
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter++;
-    if(digitalRead(SWITCHPIN)) {toggle(); return;}
-    delay(1000);
-    if(digitalRead(SWITCHPIN)) {toggle(); return;}
+    for (int i=0; i<5; i++) {
+      if(digitalRead(SWITCHPIN)) {toggle(); return;}
+      delay(200);
+    }
   }
 }
 
@@ -53,9 +54,10 @@ void flashRed() {
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter++;
-    if(digitalRead(SWITCHPIN)) {toggle(); return;}
-    delay(1000);
-    if(digitalRead(SWITCHPIN)) {toggle(); return;}
+    for (int i=0; i<5; i++) {
+      if(digitalRead(SWITCHPIN)) {toggle(); return;}
+      delay(200);
+    }
   }
 }
 

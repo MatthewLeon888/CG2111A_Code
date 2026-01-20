@@ -22,19 +22,19 @@ void flashGreen() {
   int counter = 1;
   while(turn == 0) {
     // This "for loop" is in charge of the flashing LED
-    for(int i = 0; i < counter; i++) {
+    for(int i = 0; i < counter && turn == 0; i++) {
       digitalWrite(GREENPIN, HIGH);
       delay(LED_DELAY);
       digitalWrite(GREENPIN, LOW);
       delay(LED_DELAY);
-      if (turn == 1) {
-        break;
-      }
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter ++;
-    delay(1000);
+    for (int i=0; i<5; i++) {
+      if (turn==1) return;
+      delay(200);
+    }
   }
 }
 
@@ -42,19 +42,19 @@ void flashRed() {
   int counter = 1;
   while(turn == 1) {
     // This "for loop" is in charge of the flash LED
-    for(int i = 0; i < counter; i++) {
+    for(int i = 0; i < counter && turn == 1; i++) {
       digitalWrite(REDPIN, HIGH);
       delay(LED_DELAY);
       digitalWrite(REDPIN, LOW);
       delay(LED_DELAY);
-      if (turn == 0) {
-        break; 
-      }
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter ++;
-    delay(1000);
+    for (int i=0; i<5; i++) {
+      if (turn==0) return;
+      delay(200);
+    }
   }
 }
 

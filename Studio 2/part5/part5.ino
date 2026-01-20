@@ -24,8 +24,11 @@ void flashGreen() {
       PORTB &= 0b11101111;  // Switch OFF
       _delay_ms(LED_DELAY);
     }
-    _delay_ms(1000);
     count++;
+    for (int i=0; i<5; i++) {
+      if (turn==0) return;
+      delay(200);
+    }
   } 
 }
 
@@ -41,8 +44,11 @@ void flashRed()
       PORTB &= 0b11110111;  // Switch OFF
       _delay_ms(LED_DELAY);
     }
-    _delay_ms(1000);
     count++;
+    for (int i=0; i<5; i++) {
+      if (turn==0) return;
+      delay(200);
+    }
   }
 }
 
