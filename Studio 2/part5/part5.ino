@@ -18,8 +18,7 @@ void flashGreen() {
   int i;
 
   while(turn==0) {
-    for(i=0; i<count && turn==0; i++)
-    {
+    for(i=0; i<count && turn==0; i++) {
       PORTB |= 0b00010000; // Switch green LED at pin 12 on. Pin 12 is PB4
       _delay_ms(LED_DELAY); // Delay 250ms
       PORTB &= 0b11101111; //switch off
@@ -51,7 +50,24 @@ void setup()
 {
   // Set pins 11 and 12 to output. Pin 11 is PB3, pin 12 is PB4
   DDRB |= 0b00011000;
+
+  EICRA |= 0b00000011;
+  // The green LED is on Pin 12, which is on PB4. Set it to OUTPUT
+  DDRB |= 0b00010000;
+  // Activate INT0
+  EIMSK |= 0b00000001;
+  // Ensure that interrupts are turned on.
+  sei();
+
+  // For Question 6,
+  attachInterrupt(digitalPinToInterrupt(INT0), ISR, FALLING);
+
 }
+
+ISR(INT0_vect) {
+  turn=1-turn;
+}
+
 
 void loop()
 {
