@@ -21,20 +21,20 @@ void flashGreen() {
   int counter = 1;
   while(turn == 0) {
     // This "for loop" is in charge of the flash LED
-    for(int i = 0; i < counter; i++) {
+    for(int i = 0; i < counter && turn == 0; i++) {
       digitalWrite(GREENPIN, HIGH);
       delay(LED_DELAY);
+      //if(digitalRead(SWITCHPIN)) {toggle(); return;}
       digitalWrite(GREENPIN, LOW);
       delay(LED_DELAY);
-      if(digitalRead(SWITCHPIN)) toggle();
+      if(digitalRead(SWITCHPIN)) {toggle(); return;}
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter++;
-    // Remove delay to make change faster
-    if(digitalRead(SWITCHPIN)) toggle();
+    if(digitalRead(SWITCHPIN)) {toggle(); return;}
     delay(1000);
-    if(digitalRead(SWITCHPIN)) toggle();
+    if(digitalRead(SWITCHPIN)) {toggle(); return;}
   }
 }
 
@@ -42,20 +42,20 @@ void flashRed() {
   int counter = 1;
   while(turn == 1) {
     // This "for loop" is in charge of the flash LED
-    for(int i = 0; i < counter; i++) {
+    for(int i = 0; i < counter && turn == 1; i++) {
       digitalWrite(REDPIN, HIGH);
       delay(LED_DELAY);
+      //if(digitalRead(SWITCHPIN)) {toggle(); return;}
       digitalWrite(REDPIN, LOW);
       delay(LED_DELAY);
-      if(digitalRead(SWITCHPIN)) toggle();
+      if(digitalRead(SWITCHPIN)) {toggle(); return;}
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
     counter++;
-    // Remove delay to make change faster
-    if(digitalRead(SWITCHPIN)) toggle();
+    if(digitalRead(SWITCHPIN)) {toggle(); return;}
     delay(1000);
-    if(digitalRead(SWITCHPIN)) toggle();
+    if(digitalRead(SWITCHPIN)) {toggle(); return;}
   }
 }
 
