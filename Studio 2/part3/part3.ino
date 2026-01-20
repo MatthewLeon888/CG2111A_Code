@@ -33,7 +33,7 @@ void flashGreen() {
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
-    counter += 2;
+    counter ++;
     delay(1000);
   }
 }
@@ -53,7 +53,7 @@ void flashRed() {
     }
     // The counter is in charge of how many times the LED blinks
     // The longer the switch is NOT changed, the more times the LED blinks
-    counter += 2;
+    counter ++;
     delay(1000);
   }
 }
