@@ -14,6 +14,7 @@ static unsigned long lastTime=0, currTime;
 void pinISR() {
   currTime=millis();
 
+  //debouncing
   if(currTime - lastTime > THRESHOLD) {
     // Toggles turn
     turn = 1 - turn;
