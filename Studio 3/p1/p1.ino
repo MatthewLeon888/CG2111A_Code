@@ -23,12 +23,17 @@ static unsigned long _currentTime = 0;
 
 // Our INT0 ISR just flips the turn variable
 ISR(INT0_vect) {
+  _currentTime = _timerTicks
   // Modify this ISR to do switch debouncing
-  turn = 1 - turn;
+  if(_currentTime - _lastTime > THRESHOLD) {
+    // Toggles turn
+    turn = 1 - turn;
+    _lastTime = _currentTime;
+  }
 }
 
 // Uncomment and properly declare the ISR below for timer 2
-ISR(...) {
+ISR(TIMER2_COMPA_vect) {
   _timerTicks++;
 }
 
@@ -72,7 +77,7 @@ void setupTimer() {
   // Set timer 2 to produce 100 microsecond (100us) ticks 
   // But do no start the timer here.
   TCNT2 = 0; //8 bit timer. set to 0
-  OCR2A = 199; //this is what again?
+  OCR2A = 199; //this is V
   TCCR2A = 0b01000010; //first 2 bits set 'what to do on compare match', last 2 bits set CTC mode
   TIMSK2 |= 0b10; //enables output compare interrupt
 
