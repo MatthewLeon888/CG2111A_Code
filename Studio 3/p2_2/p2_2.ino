@@ -3,19 +3,24 @@
 #include <util/delay.h>
 
 //int count = 0;
+// static volatile unsigned long _timerTicks = 0;// The _timerTicks variable maintains a count of how many 100us ticks have passed by.
+// // Our last time and current time variables
+// static volatile unsigned long _lastTime = 0;
+// static volatile unsigned long _currentTime = 0;
 
 // Timer set up function. 
 void setupTimer() {
   // Set timer 1 to produce 20ms (1000000us) ticks 
   // But do not start the timer here.
   // Set Initial Timer value
-  TCNT1 = 0;
-  // Place TOP timer value to Output compare register
-  OCR1A = 39999;
+  
   // Set CTC mode and make toggle PD6/OC0A pin on compare match
   TCCR1A = 0b00000000;
   // Enable interrupts.
-  TIMSK1 |= 0b110;
+  TIMSK1 |= 0b010;
+  TCNT1 = 0;
+  // Place TOP timer value to Output compare register
+  OCR1A = 39999;
 }
 
 // Timer start function
@@ -24,17 +29,17 @@ void startTimer() {
   //Set prescaler 8 and start timer
   TCCR1B = 0b00001010;
   // Enable global interrupts
-  sei();
 }
 
 ISR(TIMER1_COMPA_vect) {
   // When triggered, set servo pin to HIGH
   PORTD |= 0b00000010;
+  _delay_ms(1.5);
+  PORTD &= 0b11111101;
 }
 
 ISR(TIMER1_COMPB_vect) {
   // When triggered, set servo pin to LOW
-  PORTD &= 0b11111101;
 }
 
 void setup() {
@@ -47,12 +52,8 @@ void setup() {
   // Set up EICRA
   // For falling edge on INT0, Bits 1 and 0 should be 10
   EICRA |= 0b00000011;
-
-  // Set up timer 1
-  setupTimer();
-
-  // Start timer 1
-  startTimer();
+  setupTimer(); // Set up timer 1
+  startTimer(); // Start timer 1
 
   // Ensure that interrupts are enabled
   sei();
