@@ -23,7 +23,7 @@ static unsigned long _currentTime = 0;
 
 // Our INT0 ISR just flips the turn variable
 ISR(INT0_vect) {
-  _currentTime = _timerTicks
+  _currentTime = _timerTicks;
   // Modify this ISR to do switch debouncing
   if(_currentTime - _lastTime > THRESHOLD) {
     // Toggles turn
@@ -76,24 +76,23 @@ void flashRed() {
 void setupTimer() {
   // Set timer 2 to produce 100 microsecond (100us) ticks 
   // But do no start the timer here.
-  TCNT2 = 0; //8 bit timer. set to 0
-  OCR2A = 199; //this is V
   TCCR2A = 0b01000010; //first 2 bits set 'what to do on compare match', last 2 bits set CTC mode
   TIMSK2 |= 0b10; //enables output compare interrupt
-
+  TCNT2 = 0; //8 bit timer. set to 0
+  OCR2A = 199; //this is V
 }
 
 // Timer start function
 void startTimer() {
   // Start timer 2 here.
-  TCCR2B = 0b0000010; // last 2 bits sets prescaler value. setting anything starts the timer immediately
+  TCCR2B = 0b00000010; // last 2 bits sets prescaler value. setting anything starts the timer immediately
 }
 
 void setup() {
   cli(); // Disable interrupts while setting up
   
   // Set up EICRA
-  EICRA |= 0b00000011; // For falling edge on INT0, Bits 1 and 0 should be 10
+  EICRA |= 0b00000010; // For falling edge on INT0, Bits 1 and 0 should be 10
   DDRB |= 0b00011000; // Set pins 11 and 12 to output. Pin 11 is PB3, pin 12 is PB4
 
   setupTimer(); // Set up the timer

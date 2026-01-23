@@ -2,7 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-//int count = 0;
+static unsigned long _timerTicks = 0;
 
 // Timer set up function. 
 void setupTimer() {
@@ -24,12 +24,11 @@ void startTimer() {
   // Start timer 1 here.
   //Set prescaler 8 and start timer
   TCCR1B = 0b00001010;
-  // Enable global interrupts
-  sei();
 }
 
 ISR(TIMER1_COMPA_vect) {
   // When triggered, set servo pin to HIGH for 1.5ms
+  _timerTicks++;
   PORTD |= 0b00000010;
   _delay_ms(1.5);
   PORTD &= 0b11111101;
