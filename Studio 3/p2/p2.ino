@@ -2,8 +2,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-static unsigned long _timerTicks = 0; // Tick interval of 20ms
-
 // Timer set up function. 
 void setupTimer() {
   // Set timer 1 to produce 20ms (1000000us) ticks 
@@ -56,8 +54,4 @@ void setup() {
 
 void loop() {
    // Everything is in the ISRs
-  PORTD |= 0b00000010;
-  _delay_ms(1.5);
-  PORTD &= 0b11111101;
-  _delay_ms(1.5);
 }
