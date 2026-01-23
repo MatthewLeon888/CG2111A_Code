@@ -17,7 +17,7 @@ void setupTimer() {
   // Set CTC mode and make toggle PD6/OC0A pin on compare match
   TCCR1A = 0b00000000;
   // Enable interrupts.
-  TIMSK1 |= 0b010;
+  TIMSK1 |= 0b110;
   TCNT1 = 0;
   // Place TOP timer value to Output compare register
   OCR1A = 39999;
@@ -34,12 +34,11 @@ void startTimer() {
 ISR(TIMER1_COMPA_vect) {
   // When triggered, set servo pin to HIGH
   PORTD |= 0b00000010;
-  _delay_ms(1.5);
-  PORTD &= 0b11111101;
 }
 
 ISR(TIMER1_COMPB_vect) {
-  // When triggered, set servo pin to LOW
+  PORTD &= 0b11111101;
+
 }
 
 void setup() {

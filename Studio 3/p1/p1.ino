@@ -93,7 +93,6 @@ void setup() {
   cli(); // Disable interrupts while setting up
   
   // Set up EICRA
-  EICRA |= 0b00000010; // For falling edge on INT0, Bits 1 and 0 should be 10
   DDRB |= 0b00011000; // Set pins 11 and 12 to output. Pin 11 is PB3, pin 12 is PB4
   EICRA |= 0b00000010; // For falling edge on INT0, Bits 1 and 0 should be 10
   setupTimer(); // Set up the timer
