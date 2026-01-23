@@ -2,7 +2,21 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-static unsigned long _timerTicks = 0;
+ISR() {
+
+}
+
+
+void setup() {
+  // Clear interrupts for safety while setting up
+  cli();
+  DDRD |= (1 << DDD2); // Only Arduino Pin 2 as output (PD2)
+  EICRA |= 0b00000011; // For falling edge on INT0, Bits 1 and 0 should be 10
+  setupTimer(); // Set up timer 1
+  startTimer(); // Start timer 1
+
+  sei(); // Ensure that interrupts are enabled
+}
 
 // Timer set up function. 
 void setupTimer() {
