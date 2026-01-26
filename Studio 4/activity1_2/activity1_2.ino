@@ -12,13 +12,15 @@
 #define PIN0 (1 << 0)
 
 void setup() {
-  TCNT0 = 0;
+  cli();
 
   TCCR0A = 0b10000001; // Set OCOM0A to 10 and WGM to 01
 
   TIMSK0 |= 0b10; // Enable Int for Output Compare Match
 
   OCR0A = 25;
+
+  TCNT0 = 0;
 
   TCCR0B = 0b00000011; // Set clk source to clk/64
 
@@ -28,6 +30,9 @@ void setup() {
   sei();
 }
 
+
+// Warning: if you enable the timer interrupt, you must define
+// the ISR, otherwise your Arduino might continually reset.
 ISR(TIMER0_COMPA_vect)
 {
 
@@ -36,3 +41,4 @@ ISR(TIMER0_COMPA_vect)
 void loop() {
   
 }
+
