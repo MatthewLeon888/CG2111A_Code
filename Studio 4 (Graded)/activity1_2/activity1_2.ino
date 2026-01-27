@@ -12,7 +12,7 @@
 #define PIN0 (1 << 0)
 
 #define BRIGHTNESS_FACTOR 5 // Varies the brightness range of LED
-#define FLASH_FACTOR 2 // Vaires the speed of flashing cycle of LED
+#define FLASH_FACTOR 1 // Vaires the speed of flashing cycle of LED
 static volatile bool counting_up = false; // Variable that toggles between modes
 
 void setup() {

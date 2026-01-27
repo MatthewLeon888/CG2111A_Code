@@ -1,7 +1,5 @@
 #include <avr/io.h>
 #include "Arduino.h"
-#include <avr/interrupt.h>
-
 
 #define SERVO_SPEED 20 // Vaires the speed of flashing cycle of LED
 static volatile bool counting_up = false; // Variable that toggles between modes
@@ -20,7 +18,6 @@ ISR(TIMER1_COMPA_vect) {
   }
 }
 
-
 void setup() {
   
   cli();
@@ -32,7 +29,7 @@ void setup() {
   EICRA |= 0b00000011; // ADDED FOR PART 2
 
   // 2. Set Phase Correct PWM mode
-  TCCR1A = 0b10000010;
+  TCCR1A = 0b00000010;
 
   TIMSK1 = 0b10; // ADDED FOR PART 2
 
@@ -47,7 +44,7 @@ void setup() {
   ICR1 = 20000;
 
   // 4. Set OCR1A for duty cycle
-  OCR1A = 1000;
+  OCR1A = 1500;
 
   TCNT1 = 0;
 
