@@ -34,9 +34,11 @@ void setup() {
 // Warning: if you enable the timer interrupt, you must define
 // the ISR, otherwise your Arduino might continually reset.
 ISR(TIMER0_COMPA_vect) {
-  PORTD |= PIN6;
-  _delay_ms(1.5);
-  PORTD &= ~PIN6;
+  if (OCR0A>0) {
+    OCR0A--;
+  } else if (OCR0A > 26){
+    OCR0A++;
+  }
 }
 
 void loop() {
