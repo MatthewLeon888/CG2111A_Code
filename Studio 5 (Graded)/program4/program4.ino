@@ -5,7 +5,7 @@
 
 // Hint: First remap the 10-bit ADC value to the 8-bit OCR0A value. Next expand the range of this value based on the flex sensors readings you got earlier.
 
-unsigned int adcvalue;
+unsigned int adcvalue, loval, hival;
 unsigned int remapped_adc;
 
 void InitPWM() {
@@ -20,14 +20,15 @@ void startPWM() {
     TCCR0B = 0b00000100;
 }
 
-ISR(TIMER0_COMPA_vect)
-{
-    // Provide your code for the ISR
+ISR(TIMER0_COMPA_vect) {
+    remapped_adc = adcvalue/4;
+    OCR0A = remapped_adc;
 }
 
-ISR(ADC_vect)
-{
-    // Provide your code for the ISR
+ISR(ADC_vect) {
+    loval = ADCL;
+    hival = ADCH;
+    adcvalue = (hival << 8) | loval;
 }
 
 void setup() {
@@ -43,4 +44,6 @@ void setup() {
     ADCSRA |= 0b01000000;
 }
 
-void loop() {}
+void loop() {
+
+}

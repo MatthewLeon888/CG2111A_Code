@@ -30,12 +30,16 @@ void loop() {
     _delay_loop_2(adcvalue);
 }
 
-void ledToggle()
-{
+void ledToggle() {
     PORTB ^= (1 << PORTB5);
 }
 
-ISR(ADC_vect)
-{
-    // Provide your code for the ISR
+ISR(ADC_vect) { //there is an interrupt when the ADC
+    //basically same as program2 except moved into here.
+    loval = ADCL;
+    hival = ADCH;
+    adcvalue = (hival << 8) | loval;
+
+    //do we need to start the next conversion or something?
+    // ADCSRA |= (1 << ADSC);
 }
