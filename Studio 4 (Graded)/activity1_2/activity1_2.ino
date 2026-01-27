@@ -11,18 +11,21 @@
 #define PIN1 (1 << 1)
 #define PIN0 (1 << 0)
 
+static volatile bool counting_up = false;
+
 void setup() {
   cli();
 
   TCCR0A = 0b10000001; // Set OCOM0A to 10 and WGM to 01
-
+  // set to 0b11000001 for complement
   TIMSK0 |= 0b10; // Enable Int for Output Compare Match
 
   OCR0A = 25;
 
   TCNT0 = 0;
 
-  TCCR0B = 0b00000011; // Set clk source to clk/64
+  TCCR0B = 0b00000100; // Set clk source to clk/64
+  //increase prescalar to slow down blinking light.
 
   //Set PORTD Pin 6 (Arduino Pin 6) as Output
   DDRD |= PIN6;
@@ -34,11 +37,18 @@ void setup() {
 // Warning: if you enable the timer interrupt, you must define
 // the ISR, otherwise your Arduino might continually reset.
 ISR(TIMER0_COMPA_vect) {
-  if (OCR0A>0) {
-    OCR0A--;
-  } else if (OCR0A > 26){
-    OCR0A++;
+  if (OCR0A<=0) {
+    counting_up = true;
+  } else if (OCR0A>=25) {
+    counting_up = false;
   }
+
+  if (counting_up) {
+    OCR0A++;
+  } else {
+    OCR0A--;
+  }
+  _delay_ms(10);
 }
 
 void loop() {
