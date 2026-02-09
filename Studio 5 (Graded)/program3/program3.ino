@@ -41,5 +41,5 @@ ISR(ADC_vect) { //there is an interrupt when the ADC
     adcvalue = (hival << 8) | loval;
 
     //do we need to start the next conversion or something?
-    // ADCSRA |= (1 << ADSC);
+    ADCSRA |= (1 << ADSC);
 }
