@@ -1,4 +1,7 @@
-#include <Servo.h>
+// TAKE NOTE: Once you find the angle limit for each joint, 
+// modify the following code to prevent the arm moving past these limits
+
+//#include <Servo.h>
 
 const int BASE_PIN     = 14; // A0
 const int SHOULDER_PIN = 15; // A1
@@ -17,15 +20,21 @@ int parse3(const String *s) {
   return (s->charAt(0) - '0') * 100 + (s->charAt(1) - '0') * 10 + (s->charAt(2) - '0');
 }
 
+// moveSmooth takes in Servo name, Servo's current angle, and the new target angle
 void moveSmooth(Servo *sv, int *cur, int target) {
+  // Safeguard
   if (!sv || !cur) return;
 
+  // Limits target to stay within a specified range
   target = constrain(target, 0, 180);
+
+  // If target angle is greater than current angle, step is +ve
+  // else, stel is -ve
   int step = (target > *cur) ? 1 : -1;
 
   while (*cur != target) {
     *cur += step;
-    sv->write(*cur);
+    sv->write(*cur); // Need to change this in bare metal interpretation
     delay(msPerDeg);
   }
 }
@@ -40,11 +49,13 @@ void homeAll() {
 void setup() {
   Serial.begin(115200);
 
+  // Each pin is asigned to each Servo
   base.attach(BASE_PIN);
   shoulder.attach(SHOULDER_PIN);
   elbow.attach(ELBOW_PIN);
   gripper.attach(GRIPPER_PIN);
 
+  // Sets all Servos to 90deg(Default) 
   base.write(basePos);
   shoulder.write(shoulderPos);
   elbow.write(elbowPos);
