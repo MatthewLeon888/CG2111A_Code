@@ -1,7 +1,7 @@
 // TAKE NOTE: Once you find the angle limit for each joint, 
 // modify the following code to prevent the arm moving past these limits
 
-//#include <Servo.h>
+// #include <Servo.h>
 
 const int BASE_PIN     = 14; // A0
 const int SHOULDER_PIN = 15; // A1
