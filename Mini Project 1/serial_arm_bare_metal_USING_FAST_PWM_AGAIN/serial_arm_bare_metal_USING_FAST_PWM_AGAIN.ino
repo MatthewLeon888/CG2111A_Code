@@ -19,14 +19,23 @@ static volatile int servoTicks[4] = {    3000,         3000,      3000,        3
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("BASE_PIN: " BASE_PIN);
-  Serial.println("SHOULDER_PIN: " SHOULDER_PIN);
-  Serial.println("ELBOW_PIN: " ELBOW_PIN);
-  Serial.println("BASE_PIN: " GRIPPER_PIN);
-  Serial.println("PC0: " PC0);
-  Serial.println("PC1: " PC1);
-  Serial.println("PC2: " PC2);
-  Serial.println("PC3: " PC3);
+  Serial.print("BASE_PIN: ");
+  Serial.println(BASE_PIN);
+  Serial.print("SHOULDER_PIN: ");
+  Serial.println(SHOULDER_PIN);
+  Serial.print("ELBOW_PIN: ");
+  Serial.println(ELBOW_PIN);
+  Serial.print("GRIPPER_PIN: ");
+  Serial.println(GRIPPER_PIN);
+  
+  Serial.print("PC0: ");
+  Serial.println(PC0);
+  Serial.print("PC1: ");
+  Serial.println(PC1);
+  Serial.print("PC2: ");
+  Serial.println(PC2);
+  Serial.print("PC3: ");
+  Serial.println(PC3);
 
   // Disable Interrupts
   cli();
@@ -69,7 +78,7 @@ ISR(TIMER1_COMPA_vect) {
     servoNo++;
 
     // Turn ON next servo
-    PORTC |= (1 << servo[servoNo]);
+    PORTC |= (1 << servos[servoNo]);
 
     // Update OCR1A
     OCR1A = TCNT1 + servoTicks[servoNo];
