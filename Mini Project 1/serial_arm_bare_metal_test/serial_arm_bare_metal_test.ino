@@ -17,15 +17,11 @@
 // const int ELBOW_PIN    = 16; // A2
 // const int GRIPPER_PIN  = 17; // A3
 
-#define BASE_PIN     PC0 // 0b00000000, 0
-#define SHOULDER_PIN PC1 // 0b00000001, 1
-#define ELBOW_PIN    PC2 // 0b00000010, 2
-#define GRIPPER_PIN  PC3 // 0b00000011, 3
+#define BASE_PIN     PC0 // 0
+#define SHOULDER_PIN PC1 // 1
+#define ELBOW_PIN    PC2 // 2
+#define GRIPPER_PIN  PC3 // 3
 
-// int basePos     = 90;
-// int shoulderPos = 90;
-// int elbowPos    = 90;
-// int gripperPos  = 90;
 int msPerDeg    = 10;
 
 static volatile bool trigger = true;
@@ -73,7 +69,7 @@ void move(int pin, int* cur, int* ticks, int target) {
 
   while (*cur != target) {
     *cur += step;
-    *ticks += -22 * step;
+    *ticks += step;
     delay(msPerDeg);
   }
 }
@@ -89,7 +85,6 @@ void setup() {
   Serial.begin(115200);
 
   cli();
-  // SREG  &= ~0b10000000; // cli() alternative
 
   // Set Pins PC3, PC2, PC1, PC0 as Output
   // DDRC  |= 0b00001111;
@@ -102,9 +97,10 @@ void setup() {
   // Enable Compare Match A and B Interrupts, OCIE1B = 1, OCIE1A = 1
   TIMSK1 = 0b00000110;
 
-  // Waveform Mode: WGM13:10 = 1010
-  // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
-  TCCR1B = 0b00010010;
+  // Set up Timer 1 counter
+  // Recall: Timer 1 will count up from 0 to 20000(TOP) and then count down from 20000 to 0
+  // TIMER1_COMPA_vect is triggered whenever TCNT1 = OCR1A
+  TCNT1  = 0;
 
   // Set up TOP
   ICR1   = 20000;
@@ -116,16 +112,13 @@ void setup() {
   //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500 (6000) (14000)
   // 180deg servo ->  10% duty cycle -> OCR1A = 2000 (8000) (12000)
   OCR1A = 1500;
-  // OCR1A  = 14000;
-  OCR1B  = 0;
 
-  // Set up Timer 1 counter
-  // Recall: Timer 1 will count up from 0 to 20000(TOP) and then count down from 20000 to 0
-  // TIMER1_COMPA_vect is triggered whenever TCNT1 = OCR1A
-  TCNT1  = 0;
+  // Waveform Mode: WGM13:10 = 1010
+  // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
+  // Start Timer 1
+  TCCR1B = 0b00010010;
 
   sei();
-  // SREG  |= 0b10000000; // sei() alternative
 }
 
 void loop() {
