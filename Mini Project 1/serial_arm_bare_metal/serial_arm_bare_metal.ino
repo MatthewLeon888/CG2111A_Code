@@ -31,9 +31,10 @@ int msPerDeg    = 10;
 static volatile bool trigger = true;
 static volatile int servoNum = 0;
 
-const int servos[4]        = {BASE_PIN, SHOULDER_PIN, ELBOW_PIN, GRIPPER_PIN};
-volatile int servoPos[4]   = {      90,           90,        90,          90};
-volatile int servoTicks[4] = {   14000,        14000,     14000,       14000};
+int servos[4]     = {BASE_PIN, SHOULDER_PIN, ELBOW_PIN, GRIPPER_PIN};
+static volatile int servoPos[4]   = {      90,           90,        90,          90};
+static volatile int servoTicks[4] = {    20000,         20000,      20000,        20000};
+//28000 to 12000 range now.
 
 // Angles range: 0deg to 180deg
 // Ticks  range: 1050  to  1950 (to maintain 1deg =  5ticks ratio)
@@ -69,7 +70,7 @@ void setup() {
   TIMSK1 = 0b00000110;
 
   // Set up TOP
-  ICR1   = 5000;
+  ICR1   = 32000;
 
   // Set up Timer 1 counter
   // Recall: Timer 1 will count up from 0 to 20000(TOP) and then count down from 20000 to 0
@@ -82,16 +83,18 @@ void setup() {
   //   0deg servo ->   5% duty cycle -> OCR1A = 1000 (4000) (16000)
   //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500 (6000) (14000)
   // 180deg servo ->  10% duty cycle -> OCR1A = 2000 (8000) (12000)
-  OCR1A = 4625;
-  // OCR1A  = 14000;
+  OCR1A  = 20000;
   OCR1B  = 0;
 
   // Waveform Mode: WGM13:10 = 1010
   // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
-  TCCR1B = 0b00010010;
+  TCCR1B = 0b00010001;
 
   sei();
   // SREG  |= 0b10000000; // sei() alternative
+
+
+  homeAll();
 }
 
 // ISR(TIMER1_COMPA_vect) {
@@ -141,12 +144,14 @@ int parse3(const String *s) {
 void move(int pin, int* cur, int* ticks, int target) {
   if (!cur) return;
 
+  Serial.println(pin);
+
   target = constrain(target, 0, 180);
   int step = (target > *cur) ? 1 : -1;
 
   while (*cur != target) {
-    *cur += step;
-    *ticks += -22 * step;
+    *cur += step; //i degree maps to 80 something ticks?
+    *ticks -= 20 * step;
     delay(msPerDeg);
   }
 }
@@ -164,71 +169,73 @@ void homeAll() {
 }
 
 void loop() {
-  if (!Serial.available()) return;
 
-  // Reads a string with the command until newline
-  String cmd = Serial.readStringUntil('\n');
-  cmd.trim(); // Remove any extra whitespace
-  if (!cmd.length()) return; // didn't read anything
 
-  // Handle the home command
-  if (cmd == "H") {
-    Serial.println("Homing all servos...");
-    homeAll();
-    return;
-  }
+  // if (!Serial.available()) return;
 
-  // All subsequent commands need to have 4 characters
-  if (cmd.length() != 4) {
-    Serial.println("ERROR: Command is not 4 characters long");
-    return;
-  }
+  // // Reads a string with the command until newline
+  // String cmd = Serial.readStringUntil('\n');
+  // cmd.trim(); // Remove any extra whitespace
+  // if (!cmd.length()) return; // didn't read anything
 
-  // c is now the command character
-  char c = cmd.charAt(0);
-  // val is the numerical value of the argument
-  int val = parse3(&cmd.substring(1));
-  if (val < 0) { 
-    Serial.println("ERROR: Argument not valid");
-    return;
-  }
+  // // Handle the home command
+  // if (cmd == "H") {
+  //   Serial.println("Homing all servos...");
+  //   homeAll();
+  //   return;
+  // }
 
-  // Vddd sets velocity as ms per degree
-  if (c == 'V') {
-    Serial.print("Setting velocity to ");
-    Serial.println(val);
-    msPerDeg = val;
-    return;
-  } else if (c == 'B') {
-    Serial.print("Moving base to ");
-    Serial.println(val);
-    // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
-    // moveSmooth(&base, &basePos, val);
-    move(BASE_PIN, &servoPos[BASE_PIN], &servoTicks[BASE_PIN], val);
-    return;
-  } else if (c == 'S') {
-    Serial.print("Moving shoulder to ");
-    Serial.println(val);
-    // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
-    // moveSmooth(&shoulder, &shoulderPos, val);
-    move(SHOULDER_PIN, &servoPos[SHOULDER_PIN], &servoTicks[SHOULDER_PIN], val);
-    return;
-  } else if (c == 'E') {
-    Serial.print("Moving elbow to ");
-    Serial.println(val);
-    // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
-    // moveSmooth(&elbow, &elbowPos, val);
-    move(ELBOW_PIN, &servoPos[ELBOW_PIN], &servoTicks[ELBOW_PIN], val);
-    return;
-  } else if (c == 'G') {
-    Serial.print("Moving gripper to ");
-    Serial.println(val);
-    // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
-    // moveSmooth(&gripper, &gripperPos, val);
-    move(GRIPPER_PIN, &servoPos[GRIPPER_PIN], &servoTicks[GRIPPER_PIN], val);
-    return;
-  } else {
-    Serial.println("ERROR: Unknown command");
-    return;
-  }
+  // // All subsequent commands need to have 4 characters
+  // if (cmd.length() != 4) {
+  //   Serial.println("ERROR: Command is not 4 characters long");
+  //   return;
+  // }
+
+  // // c is now the command character
+  // char c = cmd.charAt(0);
+  // // val is the numerical value of the argument
+  // int val = parse3(&cmd.substring(1));
+  // if (val < 0) { 
+  //   Serial.println("ERROR: Argument not valid");
+  //   return;
+  // }
+
+  // // Vddd sets velocity as ms per degree
+  // if (c == 'V') {
+  //   Serial.print("Setting velocity to ");
+  //   Serial.println(val);
+  //   msPerDeg = val;
+  //   return;
+  // } else if (c == 'B') {
+  //   Serial.print("Moving base to ");
+  //   Serial.println(val);
+  //   // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
+  //   // moveSmooth(&base, &basePos, val);
+  //   move(BASE_PIN, &servoPos[BASE_PIN], &servoTicks[BASE_PIN], val);
+  //   return;
+  // } else if (c == 'S') {
+  //   Serial.print("Moving shoulder to ");
+  //   Serial.println(val);
+  //   // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
+  //   // moveSmooth(&shoulder, &shoulderPos, val);
+  //   move(SHOULDER_PIN, &servoPos[SHOULDER_PIN], &servoTicks[SHOULDER_PIN], val);
+  //   return;
+  // } else if (c == 'E') {
+  //   Serial.print("Moving elbow to ");
+  //   Serial.println(val);
+  //   // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
+  //   // moveSmooth(&elbow, &elbowPos, val);
+  //   move(ELBOW_PIN, &servoPos[ELBOW_PIN], &servoTicks[ELBOW_PIN], val);
+  //   return;
+  // } else if (c == 'G') {
+  //   Serial.print("Moving gripper to ");
+  //   Serial.println(val);
+  //   // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
+  //   // moveSmooth(&gripper, &gripperPos, val);
+  //   move(GRIPPER_PIN, &servoPos[GRIPPER_PIN], &servoTicks[GRIPPER_PIN], val);
+  //   return;
+  // } else {
+  //   Serial.println("ERROR: Unknown command");
+  //   return;
+  // }
 }
