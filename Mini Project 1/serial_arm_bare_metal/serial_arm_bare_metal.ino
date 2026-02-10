@@ -28,15 +28,16 @@ int elbowPos    = 90;
 int gripperPos  = 90;
 int msPerDeg    = 10;
 
-static volatile bool trigger = false;
+static volatile bool trigger = true;
 static volatile int servoNum = 0;
 
 int servos[4]     = {BASE_PIN, SHOULDER_PIN, ELBOW_PIN, GRIPPER_PIN};
 int servoPos[4]   = {      90,           90,        90,          90};
-int servoTicks[4] = {    1500,         1500,      1500,        1500};
+int servoTicks[4] = {    6000,         6000,      6000,        6000};
 
 // Angles range: 0deg to 180deg
-// Ticks  range: 1050 to 1950 (to maintain 1deg = 5ticks ratio)
+// Ticks  range: 1050 to 1950 (to maintain 1deg =  5ticks ratio)
+// Ticks  range: 4020 to 7980 (to maintain 1deg = 22ticks ratio)
 
 void setup() {
   Serial.begin(115200);
@@ -78,11 +79,11 @@ void setup() {
   // Set up duty cycle with OCR1A
   // Change OCR1A adjust duty cycles
   // Recall: 
-  //   0deg servo ->   5% duty cycle -> OCR1A = 1000
-  //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500
-  // 180deg servo ->  10% duty cycle -> OCR1A = 2000
-  OCR1A  = 1500;
-  OCR1B  = ICR1;
+  //   0deg servo ->   5% duty cycle -> OCR1A = 1000 (4000) (16000)
+  //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500 (6000) (14000)
+  // 180deg servo ->  10% duty cycle -> OCR1A = 2000 (8000) (12000)
+  OCR1A  = 14000;
+  OCR1B  = 0;
 
   // Waveform Mode: WGM13:10 = 1010
   // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
@@ -103,14 +104,13 @@ void setup() {
 // }
 
 ISR(TIMER1_COMPA_vect) {
-  PORTC &= ~(1 << servoNum);
-  servoNum++;
-  if (servoNum < 4) OCR1A = servoTicks[servoNum];
+  (trigger) ? PORTC |= (1 << servoNum) : PORTC &= ~(1 << servoNum);
+  trigger = !trigger;  
 }
 
 ISR(TIMER1_COMPB_vect) {
-  PORTC |= 0b00001111;
-  servoNum = 0;
+  servoNum++;
+  if (servoNum >= 4) servoNum = 0;
   OCR1A = servoTicks[servoNum];
 }
 
