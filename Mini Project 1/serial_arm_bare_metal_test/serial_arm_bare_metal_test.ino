@@ -39,61 +39,6 @@ volatile int servoTicks[4] = {   14000,        14000,     14000,       14000};
 // Ticks  range: 1050  to  1950 (to maintain 1deg =  5ticks ratio)
 // Ticks  range: 15980 to 12020 (to maintain 1deg = -22ticks ratio)
 
-void setup() {
-  Serial.begin(115200);
-
-  // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTIONS
-  // base.attach(BASE_PIN);
-  // shoulder.attach(SHOULDER_PIN);
-  // elbow.attach(ELBOW_PIN);
-  // gripper.attach(GRIPPER_PIN);
-
-  // NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTIONS
-  // base.write(basePos);
-  // shoulder.write(shoulderPos);
-  // elbow.write(elbowPos);
-  // gripper.write(gripperPos);
-
-  cli();
-  // SREG  &= ~0b10000000; // cli() alternative
-
-  // Set Pins PC3, PC2, PC1, PC0 as Output
-  // DDRC |= (1 << PC3) | (1 << PC2) | (1 << PC1) | (1 << PC0);
-  DDRC  |= 0b00001111;
-
-  // Output Mode: OC1A and OC1B are disconnected, COM1A1:0 = 00, COM1B1:0 = 00
-  // Waveform Mode: PWM Phase Correct w ICR1 TOP, WGM13:10 = 1010
-  TCCR1A = 0b00000010; 
-
-  // Enable Compare Match A and B Interrupts, OCIE1B = 1, OCIE1A = 1
-  TIMSK1 = 0b00000110;
-
-  // Set up TOP
-  ICR1   = 5000;
-
-  // Set up Timer 1 counter
-  // Recall: Timer 1 will count up from 0 to 20000(TOP) and then count down from 20000 to 0
-  // TIMER1_COMPA_vect is triggered whenever TCNT1 = OCR1A
-  TCNT1  = 0;
-
-  // Set up duty cycle with OCR1A
-  // Change OCR1A adjust duty cycles
-  // Recall: 
-  //   0deg servo ->   5% duty cycle -> OCR1A = 1000 (4000) (16000)
-  //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500 (6000) (14000)
-  // 180deg servo ->  10% duty cycle -> OCR1A = 2000 (8000) (12000)
-  OCR1A = 4625;
-  // OCR1A  = 14000;
-  OCR1B  = 0;
-
-  // Waveform Mode: WGM13:10 = 1010
-  // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
-  TCCR1B = 0b00010010;
-
-  sei();
-  // SREG  |= 0b10000000; // sei() alternative
-}
-
 // ISR(TIMER1_COMPA_vect) {
 //   // If trigger is TRUE, Servo pins outputs ON
 //   // else, Servo pins outputs OFF
@@ -105,17 +50,12 @@ void setup() {
 // }
 
 ISR(TIMER1_COMPA_vect) {
-  // (trigger) ? PORTC |= (1 << PC1) : PORTC &= ~(1 << PC1);
   (trigger) ? PORTC |= 0b00001111 : PORTC &= ~0b00001111;
-  trigger = !trigger; 
-  Serial.println(trigger);
+  trigger = !trigger;
 }
 
 ISR(TIMER1_COMPB_vect) {
-  servoNum++;
-  if (servoNum >= 4) servoNum = 0;
-  Serial.println("sup");
-  //OCR1A = servoTicks[servoNum];
+
 }
 
 int parse3(const String *s) {
@@ -125,19 +65,6 @@ int parse3(const String *s) {
   return (s->charAt(0) - '0') * 100 + (s->charAt(1) - '0') * 10 + (s->charAt(2) - '0');
 }
 
-// NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTION
-// void moveSmooth(Servo *sv, int *cur, int target) {
-//   if (!sv || !cur) return;
-
-//   target = constrain(target, 0, 180);
-//   int step = (target > *cur) ? 1 : -1;
-
-//   while (*cur != target) {
-//     *cur += step;
-//     sv->write(*cur);
-//     delay(msPerDeg);
-//   }
-// }
 void move(int pin, int* cur, int* ticks, int target) {
   if (!cur) return;
 
@@ -151,16 +78,54 @@ void move(int pin, int* cur, int* ticks, int target) {
   }
 }
 
-// NEED BARE METAL SUBSTITUTES FOR BELOW FUNCTIONS
 void homeAll() {
-  // moveSmooth(&base,     &basePos,     90);
-  // moveSmooth(&shoulder, &shoulderPos, 90);
-  // moveSmooth(&elbow,    &elbowPos,    90);
-  // moveSmooth(&gripper,  &gripperPos,  90);
   move(BASE_PIN,     &servoPos[BASE_PIN],     &servoTicks[BASE_PIN],     90);
   move(SHOULDER_PIN, &servoPos[SHOULDER_PIN], &servoTicks[SHOULDER_PIN], 90);
   move(ELBOW_PIN,    &servoPos[ELBOW_PIN],    &servoTicks[ELBOW_PIN],    90);
   move(GRIPPER_PIN,  &servoPos[GRIPPER_PIN],  &servoTicks[GRIPPER_PIN],  90);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  cli();
+  // SREG  &= ~0b10000000; // cli() alternative
+
+  // Set Pins PC3, PC2, PC1, PC0 as Output
+  // DDRC  |= 0b00001111;
+  DDRC |= (1 << PC3) | (1 << PC2) | (1 << PC1) | (1 << PC0);
+
+  // Output Mode: OC1A and OC1B are disconnected, COM1A1:0 = 00, COM1B1:0 = 00
+  // Waveform Mode: PWM Phase Correct w ICR1 TOP, WGM13:10 = 1010
+  TCCR1A = 0b00000010; 
+
+  // Enable Compare Match A and B Interrupts, OCIE1B = 1, OCIE1A = 1
+  TIMSK1 = 0b00000110;
+
+  // Waveform Mode: WGM13:10 = 1010
+  // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
+  TCCR1B = 0b00010010;
+
+  // Set up TOP
+  ICR1   = 20000;
+
+  // Set up duty cycle with OCR1A
+  // Change OCR1A adjust duty cycles
+  // Recall:  
+  //   0deg servo ->   5% duty cycle -> OCR1A = 1000 (4000) (16000)
+  //  90deg servo -> 7.5% duty cycle -> OCR1A = 1500 (6000) (14000)
+  // 180deg servo ->  10% duty cycle -> OCR1A = 2000 (8000) (12000)
+  OCR1A = 1500;
+  // OCR1A  = 14000;
+  OCR1B  = 0;
+
+  // Set up Timer 1 counter
+  // Recall: Timer 1 will count up from 0 to 20000(TOP) and then count down from 20000 to 0
+  // TIMER1_COMPA_vect is triggered whenever TCNT1 = OCR1A
+  TCNT1  = 0;
+
+  sei();
+  // SREG  |= 0b10000000; // sei() alternative
 }
 
 void loop() {
