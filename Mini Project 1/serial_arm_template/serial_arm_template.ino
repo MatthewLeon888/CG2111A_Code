@@ -10,7 +10,7 @@ const int GRIPPER_PIN  = 17; // A3
 
 Servo base, shoulder, elbow, gripper;
 
-int basePos = 90, shoulderPos = 90, elbowPos = 90, gripperPos = 90;
+int basePos = 90, shoulderPos = 135, elbowPos = 90, gripperPos = 55;
 int msPerDeg = 10;
 
 int parse3(const String *s) {
@@ -40,10 +40,15 @@ void moveSmooth(Servo *sv, int *cur, int target) {
 }
 
 void homeAll() {
-  moveSmooth(&base,     &basePos,     90);
-  moveSmooth(&shoulder, &shoulderPos, 90);
-  moveSmooth(&elbow,    &elbowPos,    90);
-  moveSmooth(&gripper,  &gripperPos,  90);
+  moveSmooth(&base,     &basePos,     90); //neutral 090, range 000 to 180 (left right)
+  moveSmooth(&shoulder, &shoulderPos, 135); //neutral 150, range 090 to 180 (up down)
+  //shoulder min value assumes elbow is at neutral
+  //shoulder 090 -> 60 <= elbow <= 160
+  //shoulder 180 -> 50 <= elbow <= 180
+  moveSmooth(&elbow,    &elbowPos,    120); //neutral 090, range 030 to 180 (front back)
+  //elbow 180 -> 110 <= shoulder <= 160
+  //elbow 050 -> 040 <= shoulder <= 100
+  moveSmooth(&gripper,  &gripperPos,  55); //neutral 050, range 055 to 090 (grabby claw)
 }
 
 void setup() {
