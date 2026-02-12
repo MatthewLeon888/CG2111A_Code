@@ -3,16 +3,19 @@
 
 // TAKE ANOTHER NOTE: The following code will use bare metal programming
 
-#define BASE_PIN     PC0 // 0
-#define SHOULDER_PIN PC1 // 1
-#define ELBOW_PIN    PC2 // 2
-#define GRIPPER_PIN  PC3 // 3
+#define BASE_PIN     PC0
+#define SHOULDER_PIN PC1
+#define ELBOW_PIN    PC2
+#define GRIPPER_PIN  PC3
 
-static volatile int msPerDeg      = 10;
+#define CONVERSION_RATE 17 // Conversion rate where 1deg = 17 ticks
+#define BUFFER_RANGE    10 // Buffer range for updating servoPos and servoTicks
+
+static volatile int angularSpeed  = 1; 
 static volatile int servoNo       = 0;
-static volatile int servos[4]     = {BASE_PIN, SHOULDER_PIN, ELBOW_PIN, GRIPPER_PIN};
-static volatile int servoPos[4]   = {      90,           90,        90,          90};
-static volatile int servoTicks[4] = {    1530,         3030,      4530,        3030};
+static volatile int servoPos[4]   = {   0,   90,  180,   90};
+static volatile int newPos[4]     = {   0,   90,  180,   90};
+static volatile int servoTicks[4] = {1530, 3030, 4530, 3030};
 
 // Angles range: 0deg to 180deg
 // Ticks  range: 1500 to 4560 (to maintain 1deg = 17 ticks)
@@ -62,6 +65,15 @@ ISR(TIMER1_COMPA_vect) {
   // Increment servoNo
   servoNo = (servoNo + 1) % 4;
 
+  // Update servoPos and servoTicks
+  if (newPos[servoNo] - servoPos[servoNo] > BUFFER_RANGE) {
+    servoPos[servoNo]   += angularSpeed;
+    servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
+  } else if (newPos[servoNo] - servoPos[servoNo] < BUFFER_RANGE) {
+    servoPos[servoNo]   -= angularSpeed;
+    servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
+  }
+
   // Update OCR1B
   OCR1B = servoTicks[servoNo];
 
@@ -76,10 +88,11 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER1_COMPB_vect) {
   // Turn OFF ith servo
   PORTC &= ~(1 << servoNo);
-//   Serial.println(TCNT1);
-//   Serial.print("Servo OFF: ");
-//   Serial.println(servoNo);
-//   Serial.println();
+
+  // Serial.println(TCNT1);
+  // Serial.print("Servo OFF: ");
+  // Serial.println(servoNo);
+  // Serial.println();
 }
 
 int parse3(const String *s) {
@@ -89,41 +102,9 @@ int parse3(const String *s) {
   return (s->charAt(0) - '0') * 100 + (s->charAt(1) - '0') * 10 + (s->charAt(2) - '0');
 }
 
-// void move(int pin, int* cur, int* ticks, int target) {
-//   if (!cur) return;
-
-//   Serial.println(pin);
-
-//   target = constrain(target, 0, 180);
-//   int step = (target > *cur) ? 1 : -1;
-
-//   while (*cur != target) {
-//     *cur += step; 
-//     // 1deg maps to 11 ticks
-//     *ticks += 17 * step;
-//     delay(msPerDeg);
-//   }
-// }
-
-// void homeAll() {
-//   move(BASE_PIN,     &servoPos[BASE_PIN],     &servoTicks[BASE_PIN],     90);
-//   move(SHOULDER_PIN, &servoPos[SHOULDER_PIN], &servoTicks[SHOULDER_PIN], 90);
-//   move(ELBOW_PIN,    &servoPos[ELBOW_PIN],    &servoTicks[ELBOW_PIN],    90);
-//   move(GRIPPER_PIN,  &servoPos[GRIPPER_PIN],  &servoTicks[GRIPPER_PIN],  90);
-// }
-
 void move(int pin, int target) {
-  Serial.println(pin);
-
   target = constrain(target, 0, 180);
-  int step = (target > servoPos[pin]) ? 1 : -1;
-
-  while (servoPos[pin] != target) {
-    servoPos[pin] += step; 
-    // 1deg maps to 17 ticks
-    servoTicks[pin] += 17 * step;
-    delay(msPerDeg);
-  }
+  newPos[pin] = target;
 }
 
 void homeAll() {
@@ -166,26 +147,32 @@ void loop() {
   // Vddd sets velocity as ms per degree
   if (c == 'V') {
     Serial.print("Setting velocity to ");
+    val = constrain(val, 0, BUFFER);
     Serial.println(val);
-    msPerDeg = val;
+    // msPerDeg = val;
+    angularSpeed = val;
     return;
   } else if (c == 'B') {
     Serial.print("Moving base to ");
+    val = constrain(val, 0, 180);
     Serial.println(val);
     move(BASE_PIN, val);
     return;
   } else if (c == 'S') {
     Serial.print("Moving shoulder to ");
+    val = constrain(val, 110, 180);
     Serial.println(val);
     move(SHOULDER_PIN, val);
     return;
   } else if (c == 'E') {
     Serial.print("Moving elbow to ");
+    val = constrain(val, 50, 180);
     Serial.println(val);
     move(ELBOW_PIN, val);
     return;
   } else if (c == 'G') {
     Serial.print("Moving gripper to ");
+    val = constrain(val, 55, 90);
     Serial.println(val);
     move(GRIPPER_PIN, val);
     return;
