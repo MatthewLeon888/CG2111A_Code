@@ -77,6 +77,7 @@ ISR(TIMER1_COMPB_vect) {
   if (OCR1A < 2050) countUp = true;
   if (OCR1A > 3950) countUp = false;
   (countUp) ? OCR1A += 5 : OCR1A -= 5;
+  Serial.println(OCR1A);
 }
 
 // ISR(TIMER1_COMPA_vect) {

@@ -14,16 +14,28 @@ static volatile int servos[4]     = {BASE_PIN, SHOULDER_PIN, ELBOW_PIN, GRIPPER_
 static volatile int servoPos[4]   = {      90,           90,        90,          90};
 static volatile int servoTicks[4] = {    3000,         3000,      3000,        3000};
 
-// BASE Range: 0 to 180 1000 to 5000
-// SHOULDER Range: 110 to 180
-// ELBOW Range: 50 to 180
-// GRIPPER Range: 55 to 90
-
 // Angles range: 0deg to 180deg
 // Ticks  range: 2010 to 3990 (to maintain 1deg = 11 ticks)
 
 void setup() {
   Serial.begin(115200);
+  // Serial.print("BASE_PIN: ");
+  // Serial.println(BASE_PIN);
+  // Serial.print("SHOULDER_PIN: ");
+  // Serial.println(SHOULDER_PIN);
+  // Serial.print("ELBOW_PIN: ");
+  // Serial.println(ELBOW_PIN);
+  // Serial.print("GRIPPER_PIN: ");
+  // Serial.println(GRIPPER_PIN);
+  
+  // Serial.print("PC0: ");
+  // Serial.println(PC0);
+  // Serial.print("PC1: ");
+  // Serial.println(PC1);
+  // Serial.print("PC2: ");
+  // Serial.println(PC2);
+  // Serial.print("PC3: ");
+  // Serial.println(PC3);
 
   // Disable Interrupts
   cli();
@@ -32,11 +44,11 @@ void setup() {
   DDRC |= (1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3);
 
   // Output Mode: OC1A and OC1B are disconnected, COM1A1:0 = 00, COM1B1:0 = 00
-  // Waveform Mode: Fast PWM w ICRA as TOP, WGM13:10 = 1110
-  TCCR1A = 0b00000010; 
+  // Waveform Mode: CTC w ICR1 as TOP, WGM13:10 = 1100
+  TCCR1A = 0b00000000; 
 
-  // Enable Compare Match A and B Interrupts
-  TIMSK1 = 0b00000110;
+  // Enable Compare Match A and OVERFLOW Interrupts
+  TIMSK1 = 0b0000011;
 
   // Set up Timer 1 counter
   TCNT1  = 0;
@@ -46,12 +58,21 @@ void setup() {
 
   // Set up pulse width
   OCR1A  = 3000;
-  OCR1B  = 40000;
+  //OCR1B  = 40000;
 
-  // Waveform Mode: WGM13:10 = 1110
+  // Waveform Mode: WGM13:10 = 1100
   // Prescalar: 8 (For accuracy and maximum timer resolution), CS12:10 = 010
   // Start Timer 1
   TCCR1B = 0b00011010;
+
+  // Reset servoNo
+  servoNo = 0;
+
+  // Turn ON first servo
+  PORTC |= (1 << servos[servoNo]);
+
+  // Reset OCR1A
+  OCR1A = servoTicks[servoNo];
 
   // Enable Interrupts
   sei();
@@ -59,29 +80,44 @@ void setup() {
 
 ISR(TIMER1_COMPA_vect) {
   // Turn OFF ith servo
-  PORTC &= ~(1 << servoNo);
+  PORTC &= ~(1 << servos[servoNo]);
 
   if (servoNo < 3) {
     // Increment servoNo
     servoNo++;
+    Serial.println(servoNo);
 
     // Turn ON next servo
-    PORTC |= (1 << servoNo);
+    PORTC |= (1 << servos[servoNo]);
 
     // Update OCR1A
-    OCR1A = TCNT1 + servoTicks[servoNo];
+    OCR1A += servoTicks[servoNo];
+    Serial.println(OCR1A);
   }
 }
 
-ISR(TIMER1_COMPB_vect) {
+// ISR(TIMER1_COMPB_vect) {
+//   // Reset servoNo
+//   servoNo = 0;
+
+//   // Turn ON first servo
+//   PORTC |= (1 << servos[servoNo]);
+
+//   // Reset OCR1A
+//   OCR1A = servoTicks[servoNo];
+// }
+
+ISR(TIMER1_OVF_vect) {
   // Reset servoNo
   servoNo = 0;
+  Serial.println(servoNo);
 
   // Turn ON first servo
-  PORTC |= (1 << servoNo);
+  PORTC |= (1 << servos[servoNo]);
 
   // Reset OCR1A
   OCR1A = servoTicks[servoNo];
+  Serial.println(OCR1A);
 }
 
 int parse3(const String *s) {
