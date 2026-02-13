@@ -5,7 +5,7 @@
 #define ELBOW_PIN    PC2
 #define GRIPPER_PIN  PC3
 
-#define CONVERSION_RATE 22 // Conversion rate where 1deg = 17 ticks
+#define CONVERSION_RATE 22 // Conversion rate where 1deg = 22 ticks
 #define BUFFER_RANGE     2 // Buffer range for updating servoPos
 
 // static volatile int msPerDeg      = 10; // Changes speed of rotation (lower is faster)
@@ -67,23 +67,23 @@ ISR(TIMER1_COMPA_vect) {
   // Increment servoNo
   servoNo = (servoNo + 1) % 4;
 
-  // Update servoPos and servoTicks
-  if (newPos[servoNo] - servoPos[servoNo] > angularSpeed * BUFFER_RANGE) {
-    servoPos[servoNo]   += angularSpeed;
-    servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
-  } else if (newPos[servoNo] - servoPos[servoNo] < angularSpeed * BUFFER_RANGE) {
-    servoPos[servoNo]   -= angularSpeed;
-    servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
-  }
-  
   // // Update servoPos and servoTicks
-  // if (newPos[servoNo] - servoPos[servoNo] > BUFFER_RANGE) {
+  // if (newPos[servoNo] - servoPos[servoNo] > angularSpeed * BUFFER_RANGE) {
   //   servoPos[servoNo]   += angularSpeed;
   //   servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
-  // } else if (newPos[servoNo] - servoPos[servoNo] < BUFFER_RANGE) {
+  // } else if (newPos[servoNo] - servoPos[servoNo] < angularSpeed * BUFFER_RANGE) {
   //   servoPos[servoNo]   -= angularSpeed;
   //   servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
   // }
+  
+  // Update servoPos and servoTicks
+  if (newPos[servoNo] - servoPos[servoNo] > BUFFER_RANGE) {
+    servoPos[servoNo]   += angularSpeed;
+    servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
+  } else if (newPos[servoNo] - servoPos[servoNo] < BUFFER_RANGE) {
+    servoPos[servoNo]   -= angularSpeed;
+    servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
+  }
 
   // Update OCR1B
   OCR1B = servoTicks[servoNo];
