@@ -5,18 +5,22 @@
 #define ELBOW_PIN    PC2
 #define GRIPPER_PIN  PC3
 
-#define CONVERSION_RATE 17 // Conversion rate where 1deg = 17 ticks
-#define BUFFER_RANGE    10 // Buffer range for updating servoPos
+#define CONVERSION_RATE 22 // Conversion rate where 1deg = 17 ticks
+#define BUFFER_RANGE     2 // Buffer range for updating servoPos
 
 // static volatile int msPerDeg      = 10; // Changes speed of rotation (lower is faster)
 static volatile int angularSpeed  = 1;  // Changes speed of rotation (higher is faster)
 static volatile int servoNo       = 0;  // Index of each servo
-static volatile int servoPos[4]   = {   0,   90,  180,   90};
-static volatile int newPos[4]     = {   0,   90,  180,   90};
-static volatile int servoTicks[4] = {1530, 3030, 4530, 3030};
+static volatile int servoPos[4]   = {  90,   90,   90,   90};
+static volatile int newPos[4]     = {  90,   90,   90,   90};
+static volatile int servoTicks[4] = {3000, 3000, 3000, 3000};
+
+//   0deg = 1000 Ticks
+//  90deg = 3000 Ticks
+// 180deg = 5000 Ticks
 
 // Angles range: 0deg to 180deg
-// Ticks  range: 1500 to 4560 (to maintain 1deg = 17 ticks)
+// Ticks  range: 1020 to 4980 (to maintain 1deg = 22 ticks)
 
 void setup() {
   Serial.begin(115200);
@@ -64,13 +68,22 @@ ISR(TIMER1_COMPA_vect) {
   servoNo = (servoNo + 1) % 4;
 
   // Update servoPos and servoTicks
-  if (newPos[servoNo] - servoPos[servoNo] > BUFFER_RANGE) {
+  if (newPos[servoNo] - servoPos[servoNo] > angularSpeed * BUFFER_RANGE) {
     servoPos[servoNo]   += angularSpeed;
     servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
-  } else if (newPos[servoNo] - servoPos[servoNo] < BUFFER_RANGE) {
+  } else if (newPos[servoNo] - servoPos[servoNo] < angularSpeed * BUFFER_RANGE) {
     servoPos[servoNo]   -= angularSpeed;
     servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
   }
+  
+  // // Update servoPos and servoTicks
+  // if (newPos[servoNo] - servoPos[servoNo] > BUFFER_RANGE) {
+  //   servoPos[servoNo]   += angularSpeed;
+  //   servoTicks[servoNo] += angularSpeed * CONVERSION_RATE;
+  // } else if (newPos[servoNo] - servoPos[servoNo] < BUFFER_RANGE) {
+  //   servoPos[servoNo]   -= angularSpeed;
+  //   servoTicks[servoNo] -= angularSpeed * CONVERSION_RATE;
+  // }
 
   // Update OCR1B
   OCR1B = servoTicks[servoNo];
@@ -125,6 +138,16 @@ void loop() {
     return;
   }
 
+  // Refresh angularSpeed if motor makes sound
+  if (cmd == "R") {
+    Serial.println("Refresh...");
+    int temp = angularSpeed;
+    angularSpeed = 1;
+    delay(500);
+    angularSpeed = temp;
+    return;
+  }
+
   // All subsequent commands need to have 4 characters
   if (cmd.length() != 4) {
     Serial.println("ERROR: Command is not 4 characters long");
@@ -149,7 +172,7 @@ void loop() {
       angularSpeed = val;
       break;
     case 'B':
-      val = constrain(val, 0, 180);
+      val = constrain(val, 10, 170);
       Serial.print("Moving base to ");
       Serial.println(val);
       move(BASE_PIN, val);
@@ -161,19 +184,25 @@ void loop() {
       move(SHOULDER_PIN, val);
       break;
     case 'E':
-      val = constrain(val, 50, 180);
+      val = constrain(val, 70, 160);
       Serial.print("Moving elbow to ");
       Serial.println(val);
       move(ELBOW_PIN, val);
-      return;
+      break;
     case 'G':
       val = constrain(val, 55, 90);
       Serial.print("Moving gripper to ");
       Serial.println(val);
       move(GRIPPER_PIN, val);
-      return;
+      break;
+      case 'T':
+      Serial.print("Ticks value set to ");
+      Serial.println(val * 10);
+      servoTicks[BASE_PIN] = val * 10;
+      break;
     default:
       Serial.println("ERROR: Unknown command");
+      break;
   }
 
   return;
