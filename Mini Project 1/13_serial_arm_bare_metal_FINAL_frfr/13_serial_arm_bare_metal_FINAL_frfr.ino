@@ -195,7 +195,7 @@ void loop() {
       Serial.println(val);
       move(GRIPPER_PIN, val);
       break;
-      case 'T':
+    case 'T':
       Serial.print("Ticks value set to ");
       Serial.println(val * 10);
       servoTicks[BASE_PIN] = val * 10;
